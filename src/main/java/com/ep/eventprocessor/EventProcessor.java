@@ -13,10 +13,9 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 
@@ -86,14 +85,38 @@ public class EventProcessor {
     private ValidationError validateEvent(Event event) {
         if (!userList.contains(event.getUseridentity())) {
             return ValidationError.InvalidUser;
-        } else if (!pollMap.keySet().contains(event.getPollingname())) {
+        }else if (!pollMap.keySet().contains(event.getPollingname())) {
             return ValidationError.InvalidPoll;
-        } else if (!pollMap.get(event.getPollingname()).getValidoptions().contains(event.getUseroption())) {
+        }else if (!pollMap.get(event.getPollingname()).getValidoptions().contains(event.getUseroption())) {
             return ValidationError.InvalidOption;
+        }else if (!validateStartAndEndTime(event)) {
+            return ValidationError.InvalidTime;
         }
 
 
         return null;
+    }
+
+    private boolean validateStartAndEndTime(Event event){
+        Poll poll = pollMap.get(event.getPollingname());
+        Date eventDate = getDate(event.getEventtime());
+        Date pollStartDate = getDate(poll.getStarttime());
+        Date pollEndDate = getDate(poll.getEndtime());
+
+        if(eventDate.after(pollStartDate) && eventDate.before(pollEndDate)){
+            return true;
+        }
+
+        return false;
+    }
+
+    private Date getDate(String eventtime) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        try {
+            return dateFormat.parse(eventtime);
+        } catch (ParseException e) {
+            return null;
+        }
     }
 
     public void publishInvalidEvent(Event event, ValidationError validationError) {
