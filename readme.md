@@ -21,6 +21,39 @@
 - Valid events are processed for Poll Result 
 - Invalid events are processed by Invalid Event Processor along with reason of invalidation
 
+### Notes to Interviewer
+- I have made slight changes to the internals of the application, But overall the end to end flow is as per the requirement.
+- We start with Data for 
+    - Polling Events
+    - Valid Polls 
+    - Valid Users 
+- Consume the Polling Events posted via REST API
+    - We post the same JSON Payload "DataSetEvent" that is provided in the requirement.
+- Post that we could post the Payloads for 
+    - Valid Polls 
+        - 'DataSetPolls' that is provided in the requirement.
+    - Valid Users
+        - 'DataSetUsers' that is provided in the requirement. 
+- Also internally the processing is Event Driven using Spring Events 
+- We have 2 Separate Streams for Data processing 
+    - Valid Polls 
+        - These eventually provide us the Voting Status/Result 
+    - Invalid Polls 
+        - These eventually provide us the Error Details like InvalidUser, InvalidTime, InvalidOption, DuplicateVote
+- We have REST endpoints for Voting Status and Error Details as described below.
+    - Currently we have only basic details as mentioned in Requirement document, this could be enhanced if needed
+- Internally I have used H2 In-memory database to keep track of transient data, status     
+- This app could be better written as Event Streams using Apache Flink, but that is for future enhancements
+- In nutshell have taken few shortcuts due to time constraint, goal was functional service 
+    - Taking inputs for Events, Polls, Users
+    - Providing the Voting result status and Error Details
+- Few enhancements that I could think of as of now are like,
+    - Having a processor which would queue the legitimate Events which have arrived early, and post them into system when the time comes.
+        - E.g. Id the event has arrived 1 hr early, we don't want to lose that if that is Valid, and keep it in Queue, to be posted after 1 hr.
+    - Ability to reprocess the errored events after fixing it.
+    - I would keep working on few ideas that I might get post submission ... Thank you.                 
+                                                  
+
 ### High Level Design 
 - ![](imgs/Online%20Polling.png) 
 
