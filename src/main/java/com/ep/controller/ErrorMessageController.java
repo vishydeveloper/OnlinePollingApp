@@ -2,8 +2,6 @@ package com.ep.controller;
 
 import com.ep.model.ErrorMessage;
 import com.ep.model.ErrorMessageAggregation;
-import com.ep.model.Result;
-import com.ep.model.ResultAggregation;
 import com.ep.repository.ErrorMessageRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,20 +27,29 @@ public class ErrorMessageController {
 
         List<ErrorMessage> errorMessages = errorMessageRepository.findAll().stream().collect(toList());
         Map<String, Integer> errorMessageMap = new HashMap<>();
-        for(ErrorMessage errorMessage : errorMessages){
+//        How to convert this to Java8 Stream syntax
+//        errorMessages.stream().forEach(errorMessage -> {
+//                    if (errorMessageMap.containsKey(errorMessage.getErrormessage())) {
+//                        errorMessageMap.put(errorMessage.getErrormessage(), errorMessageMap.get(errorMessage.getErrormessage() + 1));
+//                    } else {
+//                        errorMessageMap.put(errorMessage.getErrormessage(), 1);
+//                    }
+//                }
+//        );
+        for (ErrorMessage errorMessage : errorMessages) {
             String key = errorMessage.getErrormessage();
-            if(errorMessageMap.containsKey(key)){
+            if (errorMessageMap.containsKey(key)) {
                 Integer integer = errorMessageMap.get(key);
                 integer += 1;
                 errorMessageMap.put(key, integer);
-            }else{
+            } else {
                 errorMessageMap.put(key, 1);
             }
         }
 
         List<ErrorMessageAggregation> errorMessageAggregations = new ArrayList<>();
         Iterator<String> resultsIterator = errorMessageMap.keySet().iterator();
-        while(resultsIterator.hasNext()){
+        while (resultsIterator.hasNext()) {
             String key = resultsIterator.next();
             Integer count = errorMessageMap.get(key);
             ErrorMessageAggregation errorMessageAggregation = new ErrorMessageAggregation(key, count);
